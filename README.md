@@ -1,6 +1,6 @@
 # StockInvestingApp
 
-[] At least one listing screen (recommended to use RecyclerView)
+[x] At least one listing screen (recommended to use RecyclerView)
 
 [ ] A networking component (recommended to use Retrofit) for retrieving data from a REST API
 
