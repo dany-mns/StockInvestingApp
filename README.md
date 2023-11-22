@@ -1,6 +1,6 @@
 # StockInvestingApp
 
-Requirements:
+## Requirements:
 
 [ ] At least one listing screen (recommended to use RecyclerView)
 
