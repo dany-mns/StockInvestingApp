@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.danym.stockinvestingapp.CompanyProfile.Companion.newIntent
+import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.model.StockInfo
@@ -114,18 +115,7 @@ fun StockHomeContent(navigateToCompanyProfile: (Stock) -> Unit) {
 
 @Composable
 fun StockListItem(stock: Stock, navigateToCompanyProfile: (Stock) -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(horizontal = 8.dp, vertical = 8.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RoundedCornerShape(corner = CornerSize(16.dp)),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp
-        )
-    ) {
+    CardComponent {
         Row(Modifier.clickable { navigateToCompanyProfile(stock) }) {
             StockImage(ticker = stock.ticker)
             Column(

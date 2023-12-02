@@ -5,16 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +35,7 @@ import co.yml.charts.ui.linechart.model.LineType
 import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
+import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
@@ -71,18 +69,7 @@ class CompanyProfile : ComponentActivity() {
                             .padding(16.dp),
                         textAlign = TextAlign.Center
                     )
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp, vertical = 8.dp)
-                            .fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(corner = CornerSize(16.dp)),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 3.dp
-                        )
-                    ) {
+                    CardComponent {
                         Row {
                             StockImage(ticker = stock.ticker)
                             Column(
@@ -91,19 +78,27 @@ class CompanyProfile : ComponentActivity() {
                                     .fillMaxWidth()
                                     .align(Alignment.CenterVertically)
                             ) {
-                                Text(text = "Price: 44$", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                                Text(text = stock.ticker, style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    text = "Price: 44$",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = stock.ticker,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
+                        }
+                    }
+                    CardComponent {
+                        Box(
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            LineChartScreen()
                         }
                     }
                 }
 
-//                Box(
-//                    modifier = Modifier
-//                        .background(MaterialTheme.colorScheme.surface)
-//                ) {
-//                    LineChartScreen()
-//                }
             }
         }
     }
