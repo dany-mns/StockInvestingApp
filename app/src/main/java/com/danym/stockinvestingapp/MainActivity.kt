@@ -1,17 +1,39 @@
 package com.danym.stockinvestingapp
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.model.StockInfo
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import retrofit2.Call
@@ -20,7 +42,23 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.http.GET
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import kotlin.concurrent.thread
+
+val stockList =
+    mapOf(
+        "AAPL" to "Apple Inc.",
+        "MSFT" to "Microsoft Corporation",
+        "GOOG" to "Alphabet Inc.",
+        "AMZN" to "Amazon.com, Inc.",
+        "NVDA" to "NVIDIA Corporation",
+        "META" to "Meta Platforms, Inc.",
+        "TSLA" to "Tesla, Inc.",
+        "JPM" to "JPMorgan Chase & Co.",
+        "AVGO" to "Broadcom Inc.",
+        "WMT" to "Walmart Inc.",
+        "PG" to "The Procter & Gamble Company",
+        "JNJ" to "Johnson & Johnson",
+        "ORCL" to "Oracle Corporation"
+    ).entries.map { Stock(it.value, it.key) }
 
 class MainActivity : ComponentActivity() {
     private val BASE_URL =
@@ -35,15 +73,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             StockInvestingAppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+                ListingScreen()
             }
         }
+
         val executor: Executor = Executors.newSingleThreadExecutor()
         executor.execute {
             val client = Retrofit.Builder()
@@ -54,32 +87,75 @@ class MainActivity : ComponentActivity() {
             val result = stockApi.getStockInfo().execute()
             val stockInfoBody: List<StockInfo>? = result.body()
 
-//            if (stockInfoBody.isNullOrEmpty() || true) {
-//                Toast.makeText(this, "No information about stock: X", Toast.LENGTH_SHORT).show()
-//            }
+
             Log.i("test", "first log: ${stockInfoBody?.getOrNull(0)?.ceo}")
         }
 
-//        thread {
+    }
+}
 
-//
-//        }.start()
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ListingScreen() {
+    Scaffold(content = {
+        StockHomeContent()
+    })
+}
 
+@Composable
+fun StockHomeContent() {
+    val stocks = remember {
+        stockList
+    }
+    LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+        items(
+            items = stocks,
+            itemContent = {
+                StockListItem(it)
+            })
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun StockListItem(stock: Stock) {
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(corner = CornerSize(16.dp)),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        )
+    ) {
+        Row {
+            StockImage(ticker = stock.ticker)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterVertically)
+            ) {
+                Text(text = stock.name, style = MaterialTheme.typography.titleLarge)
+                Text(text = stock.ticker, style = MaterialTheme.typography.bodyMedium)
+                Text(text = "69$", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun StockImage(ticker: String) {
+    Image(
+        painter = painterResource(id = R.drawable.msft),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .padding(8.dp)
+            .size(84.dp)
+            .clip(RoundedCornerShape(corner = CornerSize(16.dp)))
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StockInvestingAppTheme {
-        Greeting("Android")
-    }
 }
