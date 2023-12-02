@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.danym.stockinvestingapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -58,7 +58,7 @@ dependencies {
     kapt("androidx.room:room-compiler:$room_version")
 //    // To use Kotlin Symbol Processing (KSP)
 //    ksp("androidx.room:room-compiler:$room_version")
-
+    implementation("co.yml:ycharts:2.1.0")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.1")
