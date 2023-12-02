@@ -27,10 +27,12 @@ import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.model.StockInfo
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
+import com.danym.stockinvestingapp.utility.getDateFormatted
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.http.GET
+import java.time.LocalDate
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -80,7 +82,17 @@ class MainActivity : ComponentActivity() {
             val stockInfoBody: List<StockInfo>? = result.body()
 
 
-            Log.i("test", "first log: ${stockInfoBody?.getOrNull(0)?.ceo}")
+            Log.i(
+                "test",
+                "first log: ${stockInfoBody?.getOrNull(0)?.ceo} -> ${
+                    getDateFormatted(
+                        LocalDate.now().minusDays(7)
+                    )
+                } -> ${
+                    getDateFormatted(
+                    )
+                }"
+            )
         }
 
     }

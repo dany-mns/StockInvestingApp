@@ -3,6 +3,11 @@ package com.danym.stockinvestingapp.model
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class StockData(
+    val symbol: String,
+    val historical: List<Historical>
+)
+
+data class Historical(
     val date: String,
     val open: Double,
     val high: Double,
