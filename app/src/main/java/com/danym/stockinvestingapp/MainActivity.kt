@@ -1,7 +1,6 @@
 package com.danym.stockinvestingapp
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -34,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.danym.stockinvestingapp.CompanyProfile.Companion.newIntent
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.model.StockInfo
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
@@ -44,26 +44,25 @@ import retrofit2.http.GET
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-val stockList =
-    mapOf(
-        "AAPL" to "Apple Inc.",
-        "MSFT" to "Microsoft Corporation",
-        "GOOG" to "Alphabet Inc.",
-        "AMZN" to "Amazon.com, Inc.",
-        "NVDA" to "NVIDIA Corporation",
-        "META" to "Meta Platforms, Inc.",
-        "TSLA" to "Tesla, Inc.",
-        "JPM" to "JPMorgan Chase & Co.",
-        "AVGO" to "Broadcom Inc.",
-        "WMT" to "Walmart Inc.",
-        "PG" to "The Procter & Gamble Company",
-        "JNJ" to "Johnson & Johnson",
-        "ORCL" to "Oracle Corporation"
-    ).entries.map { Stock(it.value, it.key) }
+val stockList = mapOf(
+    "AAPL" to "Apple Inc.",
+    "MSFT" to "Microsoft Corporation",
+    "GOOG" to "Alphabet Inc.",
+    "AMZN" to "Amazon.com, Inc.",
+    "NVDA" to "NVIDIA Corporation",
+    "META" to "Meta Platforms, Inc.",
+    "TSLA" to "Tesla, Inc.",
+    "JPM" to "JPMorgan Chase & Co.",
+    "AVGO" to "Broadcom Inc.",
+    "WMT" to "Walmart Inc.",
+    "PG" to "The Procter & Gamble Company",
+    "JNJ" to "Johnson & Johnson",
+    "ORCL" to "Oracle Corporation"
+).entries.map { Stock(it.value, it.key) }
+
 
 class MainActivity : ComponentActivity() {
-    private val BASE_URL =
-        "https://financialmodelingprep.com/api/v3/profile/"
+    private val BASE_URL = "https://financialmodelingprep.com/api/v3/profile/"
 
     interface StockInfoApi {
         @GET("AAPL?apikey=QZXaYu1lbCqqIqsBvLBRw1XEtHP7lMo4")
@@ -75,17 +74,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             StockInvestingAppTheme {
                 ListingScreen {
-                    startActivity(Intent(this, CompanyProfile::class.java))
+                    startActivity(
+                        newIntent(this, it)
+                    )
                 }
             }
         }
 
         val executor: Executor = Executors.newSingleThreadExecutor()
         executor.execute {
-            val client = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(JacksonConverterFactory.create())
-                .build()
+            val client = Retrofit.Builder().baseUrl(BASE_URL)
+                .addConverterFactory(JacksonConverterFactory.create()).build()
             val stockApi = client.create(StockInfoApi::class.java)
             val result = stockApi.getStockInfo().execute()
             val stockInfoBody: List<StockInfo>? = result.body()
@@ -112,11 +111,9 @@ fun StockHomeContent(navigateToCompanyProfile: (Stock) -> Unit) {
         stockList
     }
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-        items(
-            items = stocks,
-            itemContent = {
-                StockListItem(it, navigateToCompanyProfile)
-            })
+        items(items = stocks, itemContent = {
+            StockListItem(it, navigateToCompanyProfile)
+        })
     }
 }
 
@@ -134,9 +131,7 @@ fun StockListItem(stock: Stock, navigateToCompanyProfile: (Stock) -> Unit) {
             defaultElevation = 3.dp
         )
     ) {
-        Row(
-            Modifier.clickable { navigateToCompanyProfile(stock) }
-        ) {
+        Row(Modifier.clickable { navigateToCompanyProfile(stock) }) {
             StockImage(ticker = stock.ticker)
             Column(
                 modifier = Modifier
@@ -158,9 +153,7 @@ fun StockImage(ticker: String) {
     Image(
         painter = painterResource(
             id = context.resources.getIdentifier(
-                ticker.lowercase(),
-                "drawable",
-                context.packageName
+                ticker.lowercase(), "drawable", context.packageName
             )
         ),
         contentDescription = null,
