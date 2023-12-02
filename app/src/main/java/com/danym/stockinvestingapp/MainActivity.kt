@@ -1,11 +1,13 @@
 package com.danym.stockinvestingapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -72,7 +74,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             StockInvestingAppTheme {
-                ListingScreen()
+                ListingScreen {
+                    startActivity(Intent(this, CompanyProfile::class.java))
+                }
             }
         }
 
@@ -96,14 +100,14 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListingScreen() {
+fun ListingScreen(navigateToCompanyProfile: (Stock) -> Unit) {
     Scaffold(content = {
-        StockHomeContent()
+        StockHomeContent(navigateToCompanyProfile)
     })
 }
 
 @Composable
-fun StockHomeContent() {
+fun StockHomeContent(navigateToCompanyProfile: (Stock) -> Unit) {
     val stocks = remember {
         stockList
     }
@@ -111,13 +115,13 @@ fun StockHomeContent() {
         items(
             items = stocks,
             itemContent = {
-                StockListItem(it)
+                StockListItem(it, navigateToCompanyProfile)
             })
     }
 }
 
 @Composable
-fun StockListItem(stock: Stock) {
+fun StockListItem(stock: Stock, navigateToCompanyProfile: (Stock) -> Unit) {
     Card(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -130,7 +134,9 @@ fun StockListItem(stock: Stock) {
             defaultElevation = 3.dp
         )
     ) {
-        Row {
+        Row(
+            Modifier.clickable { navigateToCompanyProfile(stock) }
+        ) {
             StockImage(ticker = stock.ticker)
             Column(
                 modifier = Modifier
