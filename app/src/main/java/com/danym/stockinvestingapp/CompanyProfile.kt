@@ -48,6 +48,7 @@ import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import com.danym.stockinvestingapp.utility.getDateFormatted
 import com.danym.stockinvestingapp.viewmodel.StockViewModel
 import java.time.LocalDate
+import kotlin.math.ceil
 
 class CompanyProfile : ComponentActivity() {
     companion object {
@@ -145,6 +146,7 @@ class CompanyProfile : ComponentActivity() {
 @Composable
 fun LineChartScreen(pointsData: List<Point>, dates: List<String>) {
     val steps = pointsData.size
+    val maxY = pointsData.maxOf { p -> p.y }
 
     val xAxisData = AxisData.Builder().axisStepSize(100.dp).backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1).labelData { i -> dates[i] }.labelAndAxisLinePadding(15.dp)
@@ -153,7 +155,7 @@ fun LineChartScreen(pointsData: List<Point>, dates: List<String>) {
 
     val yAxisData = AxisData.Builder().steps(steps).backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp).labelData { i ->
-            val yScale = 100 / steps
+            val yScale = ceil(maxY / steps)
             (i * yScale).toString()
         }.axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary).build()
