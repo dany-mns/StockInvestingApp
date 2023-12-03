@@ -23,6 +23,7 @@ class StockViewModel : ViewModel() {
 
         if (useCache && containsActualDate(stocks[symbol]?.historical?.getOrNull(0)?.date)) {
             // take from memory
+            Log.i("info", "Use caching for stock: $symbol")
             callback(stocks[symbol]!!.historical.map { it.close })
         } else if (false) { // TODO change condition
             // take from room

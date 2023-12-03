@@ -3,8 +3,7 @@ package com.danym.stockinvestingapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
-import android.widget.Toast.LENGTH_SHORT
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -23,12 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import co.yml.charts.axis.AxisData
+import co.yml.charts.common.extensions.formatToSinglePrecision
 import co.yml.charts.common.model.Point
 import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.GridLines
@@ -75,7 +74,7 @@ class CompanyProfile : ComponentActivity() {
                     val prices = remember {
                         mutableStateOf(listOf<Double>())
                     }
-                    viewModel.getStockPrices(stock.ticker, 7, { p ->
+                    viewModel.getStockPrices(stock.ticker, 10, { p ->
                         currentPrice.value = p.getOrNull(0)?.toString() ?: ""
                         prices.value = p
                     })
@@ -127,12 +126,6 @@ class CompanyProfile : ComponentActivity() {
                                         )
                                     }
                                 )
-                            } else {
-                                Toast.makeText(
-                                    LocalContext.current,
-                                    "No data available for displaying the prices",
-                                    LENGTH_SHORT
-                                ).show()
                             }
                         }
                     }
@@ -146,19 +139,23 @@ class CompanyProfile : ComponentActivity() {
 @Composable
 fun LineChartScreen(pointsData: List<Point>, dates: List<String>) {
     val steps = pointsData.size
-    val maxY = pointsData.maxOf { p -> p.y }
-
     val xAxisData = AxisData.Builder().axisStepSize(100.dp).backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1).labelData { i -> dates[i] }.labelAndAxisLinePadding(15.dp)
         .axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary).build()
 
-    val yAxisData = AxisData.Builder().steps(steps).backgroundColor(Color.Transparent)
-        .labelAndAxisLinePadding(20.dp).labelData { i ->
-            val yScale = ceil(maxY / steps)
-            (i * yScale).toString()
+    val yAxisData = AxisData.Builder()
+        .steps(steps)
+        .backgroundColor(Color.Transparent)
+        .labelAndAxisLinePadding(20.dp)
+        .labelData { i ->
+            val yMin = pointsData.minOf { it.y }
+            val yMax = pointsData.maxOf { it.y }
+            val yScale = (yMax - yMin) / steps
+            ((i * yScale) + yMin).formatToSinglePrecision()
         }.axisLineColor(MaterialTheme.colorScheme.tertiary)
-        .axisLabelColor(MaterialTheme.colorScheme.tertiary).build()
+        .axisLabelColor(MaterialTheme.colorScheme.tertiary)
+        .build()
 
     val lineChart = LineChartData(
         linePlotData = LinePlotData(
