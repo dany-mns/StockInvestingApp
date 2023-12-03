@@ -3,7 +3,6 @@ package com.danym.stockinvestingapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -22,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,7 +47,6 @@ import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import com.danym.stockinvestingapp.utility.getDateFormatted
 import com.danym.stockinvestingapp.viewmodel.StockViewModel
 import java.time.LocalDate
-import kotlin.math.ceil
 
 class CompanyProfile : ComponentActivity() {
     companion object {
@@ -74,7 +73,7 @@ class CompanyProfile : ComponentActivity() {
                     val prices = remember {
                         mutableStateOf(listOf<Double>())
                     }
-                    viewModel.getStockPrices(stock.ticker, 10, { p ->
+                    viewModel.getStockPrices(LocalContext.current, stock.ticker, 10, { p ->
                         currentPrice.value = p.getOrNull(0)?.toString() ?: ""
                         prices.value = p
                     })

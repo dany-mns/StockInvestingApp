@@ -1,19 +1,28 @@
 package com.danym.stockinvestingapp.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.danym.stockinvestingapp.data.AppDatabase
+import com.danym.stockinvestingapp.data.StockEntity
 import com.danym.stockinvestingapp.model.StockData
 import com.danym.stockinvestingapp.network.getStockData2
 import com.danym.stockinvestingapp.utility.getDateFormatted
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Instant
 import java.time.LocalDate
+import java.util.Date
 
 class StockViewModel : ViewModel() {
     private val stocks = mutableMapOf<String, StockData>()
 
     fun getStockPrices(
+        context: Context,
         symbol: String,
         lastNDays: Int,
         callback: (prices: List<Double>) -> Unit,
@@ -39,6 +48,11 @@ class StockViewModel : ViewModel() {
                 ) {
                     val body = response.body()
                     if (body?.historical != null && body.historical.isNotEmpty()) {
+                        val room = AppDatabase.getInstance(context)
+                        GlobalScope.launch(Dispatchers.IO) {
+                            room.stockDao()
+                                .insertStock(StockEntity(body.symbol, 11.1))
+                        }
                         callback(body.historical.map { it.close })
                     }
                 }
