@@ -56,6 +56,6 @@ interface StockDao {
     @Upsert
     suspend fun insertStock(stock: StockEntity)
 
-    @Query("SELECT * FROM stocks ORDER BY date DESC LIMIT :limitN")
-    fun getLastNStockData(limitN: Int): List<StockEntity>
+    @Query("SELECT * FROM stocks WHERE stockTicker = :ticker ORDER BY date DESC LIMIT :limitN")
+    fun getLastNStockData(ticker: String, limitN: Int): List<StockEntity>?
 }

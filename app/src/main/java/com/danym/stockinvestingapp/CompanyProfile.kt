@@ -73,10 +73,10 @@ class CompanyProfile : ComponentActivity() {
                     val prices = remember {
                         mutableStateOf(listOf<Double>())
                     }
-                    viewModel.getStockPrices(LocalContext.current, stock.ticker, 10, { p ->
+                    viewModel.getStockPrices(LocalContext.current, stock.ticker, 10) { p ->
                         currentPrice.value = p.getOrNull(0)?.toString() ?: ""
                         prices.value = p
-                    })
+                    }
                     Text(
                         text = stock.name,
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
