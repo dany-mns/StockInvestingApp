@@ -25,41 +25,16 @@ import com.danym.stockinvestingapp.CompanyProfile.Companion.newIntent
 import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
-import com.danym.stockinvestingapp.model.StockInfo
+import com.danym.stockinvestingapp.model.StockData
+import com.danym.stockinvestingapp.model.stockList
+import com.danym.stockinvestingapp.network.getStockData
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import com.danym.stockinvestingapp.utility.getDateFormatted
-import retrofit2.Call
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
-import retrofit2.http.GET
 import java.time.LocalDate
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-val stockList = mapOf(
-    "AAPL" to "Apple Inc.",
-    "MSFT" to "Microsoft Corporation",
-    "GOOG" to "Alphabet Inc.",
-    "AMZN" to "Amazon.com, Inc.",
-    "NVDA" to "NVIDIA Corporation",
-    "META" to "Meta Platforms, Inc.",
-    "TSLA" to "Tesla, Inc.",
-    "JPM" to "JPMorgan Chase & Co.",
-    "AVGO" to "Broadcom Inc.",
-    "WMT" to "Walmart Inc.",
-    "PG" to "The Procter & Gamble Company",
-    "JNJ" to "Johnson & Johnson",
-    "ORCL" to "Oracle Corporation"
-).entries.map { Stock(it.value, it.key) }
-
-
 class MainActivity : ComponentActivity() {
-    private val BASE_URL = "https://financialmodelingprep.com/api/v3/profile/"
-
-    interface StockInfoApi {
-        @GET("AAPL?apikey=QZXaYu1lbCqqIqsBvLBRw1XEtHP7lMo4")
-        fun getStockInfo(): Call<List<StockInfo>>
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,21 +50,13 @@ class MainActivity : ComponentActivity() {
 
         val executor: Executor = Executors.newSingleThreadExecutor()
         executor.execute {
-            val client = Retrofit.Builder().baseUrl(BASE_URL)
-                .addConverterFactory(JacksonConverterFactory.create()).build()
-            val stockApi = client.create(StockInfoApi::class.java)
-            val result = stockApi.getStockInfo().execute()
-            val stockInfoBody: List<StockInfo>? = result.body()
-
+            val stockInfoBody: StockData? = getStockData("AAPL", "2023-11-20", "2023-11-25")
 
             Log.i(
                 "test",
-                "first log: ${stockInfoBody?.getOrNull(0)?.ceo} -> ${
+                "first log: ${stockInfoBody?.historical?.size} -> ${
                     getDateFormatted(
                         LocalDate.now().minusDays(7)
-                    )
-                } -> ${
-                    getDateFormatted(
                     )
                 }"
             )

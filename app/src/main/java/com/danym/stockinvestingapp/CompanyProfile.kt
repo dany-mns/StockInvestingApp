@@ -3,6 +3,8 @@ package com.danym.stockinvestingapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +42,8 @@ import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
+import com.danym.stockinvestingapp.utility.getDateFormatted
+import java.time.LocalDate
 
 class CompanyProfile : ComponentActivity() {
     companion object {
@@ -50,7 +55,6 @@ class CompanyProfile : ComponentActivity() {
     }
 
     private val stock: Stock by lazy {
-        // TODO check later replacement for the deprecated method
         intent?.getSerializableExtra(STOCK_ID) as Stock
     }
 
@@ -79,7 +83,7 @@ class CompanyProfile : ComponentActivity() {
                                     .align(Alignment.CenterVertically)
                             ) {
                                 Text(
-                                    text = "Price: 44$",
+                                    text = "Price: 44$", // TODO change with real price from current date
                                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                                 )
                                 Text(
@@ -94,7 +98,27 @@ class CompanyProfile : ComponentActivity() {
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.surface)
                         ) {
-                            LineChartScreen()
+                            val prices: List<Float> = listOf(40f, 90f, 0f, 60f, 10f)
+
+                            val points = prices.mapIndexed { i, p -> Point(i.toFloat(), p) }
+                            if (points.isNotEmpty()) {
+                                LineChartScreen(
+                                    points,
+                                    List(points.size) { i ->
+                                        getDateFormatted(
+                                            LocalDate.now().minusDays(
+                                                (points.size - (i + 1)).toLong()
+                                            )
+                                        )
+                                    }
+                                )
+                            } else {
+                                Toast.makeText(
+                                    LocalContext.current,
+                                    "No data available for displaying the prices",
+                                    LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     }
                 }
@@ -105,20 +129,17 @@ class CompanyProfile : ComponentActivity() {
 }
 
 @Composable
-fun LineChartScreen() {
-    val step = 5
-    val pointsData = listOf(
-        Point(0f, 40f), Point(1f, 90f), Point(2f, 0f), Point(3f, 60f), Point(4f, 10f)
-    )
+fun LineChartScreen(pointsData: List<Point>, dates: List<String>) {
+    val steps = pointsData.size
 
     val xAxisData = AxisData.Builder().axisStepSize(100.dp).backgroundColor(Color.Transparent)
-        .steps(pointsData.size - 1).labelData { i -> i.toString() }.labelAndAxisLinePadding(15.dp)
+        .steps(pointsData.size - 1).labelData { i -> dates[i] }.labelAndAxisLinePadding(15.dp)
         .axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary).build()
 
-    val yAxisData = AxisData.Builder().steps(step).backgroundColor(Color.Transparent)
+    val yAxisData = AxisData.Builder().steps(steps).backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp).labelData { i ->
-            val yScale = 100 / step
+            val yScale = 100 / steps
             (i * yScale).toString()
         }.axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary).build()
@@ -156,6 +177,6 @@ fun LineChartScreen() {
     LineChart(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp), lineChartData = lineChart
+            .height(400.dp), lineChartData = lineChart
     )
 }
