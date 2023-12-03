@@ -19,3 +19,7 @@ App:
 ![alt text](./images/first_page.png)
 
 ![alt text](./images/second_page.png)
+<p align="center">
+  <img src="./images/first_page.png"/>
+  <img src="./images/second_page.png"/>
+</p>
