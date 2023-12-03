@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -25,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import co.yml.charts.axis.AxisData
 import co.yml.charts.common.model.Point
 import co.yml.charts.ui.linechart.LineChart
@@ -43,6 +46,7 @@ import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
 import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import com.danym.stockinvestingapp.utility.getDateFormatted
+import com.danym.stockinvestingapp.viewmodel.StockViewModel
 import java.time.LocalDate
 
 class CompanyProfile : ComponentActivity() {
@@ -60,9 +64,20 @@ class CompanyProfile : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewModel = ViewModelProvider(this)[StockViewModel::class.java]
         setContent {
             StockInvestingAppTheme {
                 Column {
+                    val currentPrice = remember {
+                        mutableStateOf("")
+                    }
+                    val prices = remember {
+                        mutableStateOf(listOf<Double>())
+                    }
+                    viewModel.getStockPrices(stock.ticker, 7, { p ->
+                        currentPrice.value = p.getOrNull(0)?.toString() ?: ""
+                        prices.value = p
+                    })
                     Text(
                         text = stock.name,
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
@@ -83,7 +98,7 @@ class CompanyProfile : ComponentActivity() {
                                     .align(Alignment.CenterVertically)
                             ) {
                                 Text(
-                                    text = "Price: 44$", // TODO change with real price from current date
+                                    text = "Price: ${currentPrice.value}$",
                                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                                 )
                                 Text(
@@ -98,9 +113,8 @@ class CompanyProfile : ComponentActivity() {
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.surface)
                         ) {
-                            val prices: List<Float> = listOf(40f, 90f, 0f, 60f, 10f)
-
-                            val points = prices.mapIndexed { i, p -> Point(i.toFloat(), p) }
+                            val points =
+                                prices.value.mapIndexed { i, p -> Point(i.toFloat(), p.toFloat()) }
                             if (points.isNotEmpty()) {
                                 LineChartScreen(
                                     points,

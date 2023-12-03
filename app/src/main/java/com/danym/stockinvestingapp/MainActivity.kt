@@ -51,7 +51,6 @@ class MainActivity : ComponentActivity() {
         val executor: Executor = Executors.newSingleThreadExecutor()
         executor.execute {
             val stockInfoBody: StockData? = getStockData("AAPL", "2023-11-20", "2023-11-25")
-
             Log.i(
                 "test",
                 "first log: ${stockInfoBody?.historical?.size} -> ${
