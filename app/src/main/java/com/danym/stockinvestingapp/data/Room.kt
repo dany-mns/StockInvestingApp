@@ -43,7 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(
                         context.applicationContext, AppDatabase::class.java, "app_database"
-                    ).fallbackToDestructiveMigration().build()
+                    ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
                 }
                 return INSTANCE!!
             }

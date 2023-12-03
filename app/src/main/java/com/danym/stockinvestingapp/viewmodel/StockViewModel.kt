@@ -37,21 +37,18 @@ class StockViewModel : ViewModel() {
     fun getStockPrices(
         context: Context, symbol: String, lastNDays: Int, callback: (prices: List<Double>) -> Unit
     ) {
-        callback(emptyList())
         val room = AppDatabase.getInstance(context)
         val deviceIsConnectedToNetwork = isDeviceConnectedToNetwork(context)
         Log.i("info", "Device connectivity: $deviceIsConnectedToNetwork")
 
 
         if (!deviceIsConnectedToNetwork) {
-            GlobalScope.launch(Dispatchers.IO) {
-                val result = room.stockDao().getLastNStockData(symbol, lastNDays)
-                Log.i(
-                    "info",
-                    "Using Room to get ${result.size} results for $symbol."
-                )
-                callback(result.map { it.price })
-            }
+            val result = room.stockDao().getLastNStockData(symbol, lastNDays)
+            Log.i(
+                "info",
+                "Using Room to get ${result.size} results for $symbol."
+            )
+            callback(result.map { it.price })
         } else {
             getStockData2(symbol, lastNDays, object : Callback<StockData> {
                 override fun onResponse(
