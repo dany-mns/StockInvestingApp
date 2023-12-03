@@ -25,7 +25,7 @@ class StockViewModel : ViewModel() {
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val actNw =
             cm.getNetworkCapabilities(cm.activeNetwork)
-         return when {
+        return when {
             actNw?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> true
             actNw?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> true
             actNw?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true -> true
@@ -40,6 +40,7 @@ class StockViewModel : ViewModel() {
         callback(emptyList())
         val room = AppDatabase.getInstance(context)
         val deviceIsConnectedToNetwork = isDeviceConnectedToNetwork(context)
+        Log.i("info", "Device connectivity: $deviceIsConnectedToNetwork")
 
 
         if (!deviceIsConnectedToNetwork) {
@@ -47,9 +48,9 @@ class StockViewModel : ViewModel() {
                 val result = room.stockDao().getLastNStockData(symbol, lastNDays)
                 Log.i(
                     "info",
-                    "Using Room to get ${result?.size} results for $symbol. Device connectivity: $deviceIsConnectedToNetwork"
+                    "Using Room to get ${result.size} results for $symbol."
                 )
-                callback(result?.map { it.price } ?: emptyList())
+                callback(result.map { it.price })
             }
         } else {
             getStockData2(symbol, lastNDays, object : Callback<StockData> {
@@ -59,7 +60,7 @@ class StockViewModel : ViewModel() {
                     val body = response.body()
                     Log.i(
                         "info",
-                        "Using Retrofit to get ${body?.historical?.size} results for ${body?.symbol}. Device connectivity: $deviceIsConnectedToNetwork"
+                        "Using Retrofit to get ${body?.historical?.size} results for ${body?.symbol}."
                     )
                     if (body?.historical != null && body.historical.isNotEmpty()) {
                         GlobalScope.launch(Dispatchers.IO) {
