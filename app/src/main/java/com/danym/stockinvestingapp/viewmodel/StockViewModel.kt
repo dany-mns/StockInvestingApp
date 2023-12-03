@@ -7,6 +7,7 @@ import com.danym.stockinvestingapp.data.AppDatabase
 import com.danym.stockinvestingapp.data.StockEntity
 import com.danym.stockinvestingapp.model.StockData
 import com.danym.stockinvestingapp.network.getStockData2
+import com.danym.stockinvestingapp.utility.formatter
 import com.danym.stockinvestingapp.utility.getDateFormatted
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -14,9 +15,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.Instant
 import java.time.LocalDate
-import java.util.Date
 
 class StockViewModel : ViewModel() {
     private val stocks = mutableMapOf<String, StockData>()
@@ -50,8 +49,16 @@ class StockViewModel : ViewModel() {
                     if (body?.historical != null && body.historical.isNotEmpty()) {
                         val room = AppDatabase.getInstance(context)
                         GlobalScope.launch(Dispatchers.IO) {
-                            room.stockDao()
-                                .insertStock(StockEntity(body.symbol, 11.1))
+                            body.historical.forEach {
+                                room.stockDao()
+                                    .insertStock(
+                                        StockEntity(
+                                            body.symbol,
+                                            it.close,
+                                            LocalDate.parse(it.date, formatter)
+                                        )
+                                    )
+                            }
                         }
                         callback(body.historical.map { it.close })
                     }
