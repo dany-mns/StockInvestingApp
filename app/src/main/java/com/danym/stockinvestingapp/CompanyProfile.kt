@@ -1,10 +1,5 @@
 package com.danym.stockinvestingapp
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -25,7 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import co.yml.charts.axis.AxisData
 import co.yml.charts.common.extensions.formatToSinglePrecision
 import co.yml.charts.common.model.Point
@@ -43,96 +41,74 @@ import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
-import com.danym.stockinvestingapp.ui.theme.StockInvestingAppTheme
 import com.danym.stockinvestingapp.utility.getDateFormatted
 import com.danym.stockinvestingapp.viewmodel.StockViewModel
 import java.time.LocalDate
 
-class CompanyProfile : ComponentActivity() {
-    companion object {
-        private const val STOCK_ID = "stock_id"
-        fun newIntent(context: Context, stock: Stock) =
-            Intent(context, CompanyProfile::class.java).apply {
-                putExtra(STOCK_ID, stock)
-            }
-    }
+@Composable
+fun CompanyProfile(navController: NavController, stock: Stock) {
+    val viewModel: StockViewModel = viewModel()
+    var currentPrice by remember { mutableStateOf("") }
+    var prices by remember { mutableStateOf(listOf<Double>()) }
 
-    private val stock: Stock by lazy {
-        intent?.getSerializableExtra(STOCK_ID) as Stock
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val viewModel = ViewModelProvider(this)[StockViewModel::class.java]
-        setContent {
-            StockInvestingAppTheme {
-                Column {
-                    val currentPrice = remember {
-                        mutableStateOf("")
-                    }
-                    val prices = remember {
-                        mutableStateOf(listOf<Double>())
-                    }
-                    viewModel.getStockPrices(LocalContext.current, stock.ticker, 10) { p ->
-                        currentPrice.value = p.getOrNull(0)?.toString() ?: ""
-                        prices.value = p
-                    }
+    Column {
+        viewModel.getStockPrices(LocalContext.current, stock.ticker, 10) { p ->
+            currentPrice = p.getOrNull(0)?.toString() ?: ""
+            prices = p
+        }
+        Text(
+            text = stock.name,
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
+                .padding(vertical = 20.dp)
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+        CardComponent {
+            Row {
+                StockImage(ticker = stock.ticker)
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .align(Alignment.CenterVertically)
+                ) {
                     Text(
-                        text = stock.name,
-                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 20.dp)
-                            .padding(vertical = 20.dp)
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center
+                        text = "Price: ${currentPrice}$",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
-                    CardComponent {
-                        Row {
-                            StockImage(ticker = stock.ticker)
-                            Column(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth()
-                                    .align(Alignment.CenterVertically)
-                            ) {
-                                Text(
-                                    text = "Price: ${currentPrice.value}$",
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                                )
-                                Text(
-                                    text = stock.ticker,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-                    }
-                    CardComponent {
-                        Box(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            val points =
-                                prices.value.mapIndexed { i, p -> Point(i.toFloat(), p.toFloat()) }
-                            if (points.isNotEmpty()) {
-                                LineChartScreen(
-                                    points,
-                                    List(points.size) { i ->
-                                        getDateFormatted(
-                                            LocalDate.now().minusDays(
-                                                (points.size - (i + 1)).toLong()
-                                            )
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = stock.ticker,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
-
+            }
+        }
+        CardComponent {
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                val points =
+                    prices.mapIndexed { i, p -> Point(i.toFloat(), p.toFloat()) }
+                if (points.isNotEmpty()) {
+                    LineChartScreen(
+                        points,
+                        List(points.size) { i ->
+                            getDateFormatted(
+                                LocalDate.now().minusDays(
+                                    (points.size - (i + 1)).toLong()
+                                )
+                            )
+                        }
+                    )
+                }
             }
         }
     }
+
 }
 
 @Composable

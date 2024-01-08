@@ -20,7 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.danym.stockinvestingapp.CompanyProfile.Companion.newIntent
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.danym.stockinvestingapp.components.CardComponent
 import com.danym.stockinvestingapp.components.StockImage
 import com.danym.stockinvestingapp.model.Stock
@@ -33,10 +37,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             StockInvestingAppTheme {
-                ListingScreen {
-                    startActivity(
-                        newIntent(this, it)
-                    )
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "listingScreen") {
+                    composable("listingScreen") {
+                        ListingScreen(
+                            navigateToCompanyProfile = { stock ->
+                                navController.navigate("companyProfile/${stock.ticker}")
+                            }
+                        )
+                    }
+                    composable(
+                        "companyProfile/{stockTicker}",
+                        arguments = listOf(navArgument("stockTicker") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val stockTicker = backStackEntry.arguments?.getString("stockTicker")
+                        val stock = stockList.find { it.ticker == stockTicker }
+                        stock?.let {
+                            CompanyProfile(navController, stock = it)
+                        }
+                    }
                 }
             }
         }
