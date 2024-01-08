@@ -8,16 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.danym.stockinvestingapp.data.AppDatabase
 import com.danym.stockinvestingapp.data.StockEntity
-import com.danym.stockinvestingapp.model.StockData
-import com.danym.stockinvestingapp.network.getStockData2
+import com.danym.stockinvestingapp.network.getStockData
 import com.danym.stockinvestingapp.utility.formatter
+import com.danym.stockinvestingapp.utility.getDateFormatted
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.time.LocalDate
 
 class StockViewModel : ViewModel() {
@@ -43,45 +40,40 @@ class StockViewModel : ViewModel() {
 
 
         if (!deviceIsConnectedToNetwork) {
-            val result =
-                room.stockDao().getLastNStockData(symbol, lastNDays).onEach { stockResults ->
-                    callback(stockResults.map { it.price })
-                    Log.i(
-                        "info",
-                        "Using Room to get ${stockResults.size} results for $symbol."
-                    )
-                }.launchIn(viewModelScope)
+            room.stockDao().getLastNStockData(symbol, lastNDays).onEach { stockResults ->
+                callback(stockResults.map { it.price })
+                Log.i(
+                    "info",
+                    "Using Room to get ${stockResults.size} results for $symbol."
+                )
+            }.launchIn(viewModelScope)
 
         } else {
-            getStockData2(symbol, lastNDays, object : Callback<StockData> {
-                override fun onResponse(
-                    call: Call<StockData>, response: Response<StockData>
-                ) {
-                    val body = response.body()
+            try {
+                val from = getDateFormatted(LocalDate.now().minusDays(lastNDays.toLong()))
+                val to = getDateFormatted()
+                viewModelScope.launch(Dispatchers.IO) {
+                    val body = getStockData(symbol, from, to)
                     Log.i(
                         "info",
-                        "Using Retrofit to get ${body?.historical?.size} results for ${body?.symbol}."
+                        "Using Retrofit to get ${body.historical.size} results for ${body.symbol}."
                     )
-                    if (body?.historical != null && body.historical.isNotEmpty()) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            body.historical.forEach {
-                                room.stockDao().insertStock(
-                                    StockEntity(
-                                        body.symbol,
-                                        it.close,
-                                        LocalDate.parse(it.date, formatter)
-                                    )
+                    if (body.historical.isNotEmpty()) {
+                        body.historical.forEach {
+                            room.stockDao().insertStock(
+                                StockEntity(
+                                    body.symbol,
+                                    it.close,
+                                    LocalDate.parse(it.date, formatter)
                                 )
-                            }
+                            )
                         }
                         callback(body.historical.map { it.close })
                     }
                 }
-
-                override fun onFailure(call: Call<StockData>, t: Throwable) {
-                    Log.i("info", "Fail to get info. Error: ${t.message}")
-                }
-            })
+            } catch (exception: Exception) {
+                Log.i("info", "Fail to get info. Error: ${exception.message}")
+            }
         }
     }
 }
