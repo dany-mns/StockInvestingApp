@@ -5,14 +5,15 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.danym.stockinvestingapp.data.AppDatabase
 import com.danym.stockinvestingapp.data.StockEntity
 import com.danym.stockinvestingapp.model.StockData
 import com.danym.stockinvestingapp.network.getStockData2
 import com.danym.stockinvestingapp.utility.formatter
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,7 +34,6 @@ class StockViewModel : ViewModel() {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun getStockPrices(
         context: Context, symbol: String, lastNDays: Int, callback: (prices: List<Double>) -> Unit
     ) {
@@ -43,12 +43,15 @@ class StockViewModel : ViewModel() {
 
 
         if (!deviceIsConnectedToNetwork) {
-            val result = room.stockDao().getLastNStockData(symbol, lastNDays)
-            Log.i(
-                "info",
-                "Using Room to get ${result.size} results for $symbol."
-            )
-            callback(result.map { it.price })
+            val result =
+                room.stockDao().getLastNStockData(symbol, lastNDays).onEach { stockResults ->
+                    callback(stockResults.map { it.price })
+                    Log.i(
+                        "info",
+                        "Using Room to get ${stockResults.size} results for $symbol."
+                    )
+                }.launchIn(viewModelScope)
+
         } else {
             getStockData2(symbol, lastNDays, object : Callback<StockData> {
                 override fun onResponse(
@@ -60,7 +63,7 @@ class StockViewModel : ViewModel() {
                         "Using Retrofit to get ${body?.historical?.size} results for ${body?.symbol}."
                     )
                     if (body?.historical != null && body.historical.isNotEmpty()) {
-                        GlobalScope.launch(Dispatchers.IO) {
+                        viewModelScope.launch(Dispatchers.IO) {
                             body.historical.forEach {
                                 room.stockDao().insertStock(
                                     StockEntity(

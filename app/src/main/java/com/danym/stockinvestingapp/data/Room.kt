@@ -10,6 +10,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 
@@ -57,5 +58,5 @@ interface StockDao {
     suspend fun insertStock(stock: StockEntity)
 
     @Query("SELECT * FROM stocks WHERE stockTicker = :ticker ORDER BY date DESC LIMIT :limitN")
-    fun getLastNStockData(ticker: String, limitN: Int): List<StockEntity>
+    fun getLastNStockData(ticker: String, limitN: Int): Flow<List<StockEntity>>
 }
